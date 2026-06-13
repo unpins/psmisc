@@ -25,7 +25,7 @@
       binName = "psmisc";
       linuxOnly = true; # reads /proc — nixpkgs meta.platforms is linux-only
       smoke = [ "--unpin-program=pstree" "--version" ];
-      smokePattern = "psmisc";
+      smokePattern = "PSmisc";
       build = pkgs:
         let
           psmiscFB = pkgs.pkgsStatic.psmisc.override {
