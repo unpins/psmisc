@@ -49,6 +49,6 @@ The [Releases](https://github.com/unpins/psmisc/releases) page has standalone bi
 ## Build notes
 
 - **Platform:** Linux only (`/proc`).
-- **Multicall:** the five programs are folded into one ELF via a source-level `main` → `<prog>_main` rename (`lib.cppRenameMulticall`), keeping a single copy of the shared `signals.o`/`statx.o`.
+- **Multicall:** the five programs are folded into one ELF by the unpin-llvm engine, which compiles each to a bitcode module and links them into a single binary with an `argv[0]`/`--unpin-program` dispatcher, so the shared code is kept once.
 - **Terminal width:** `pstree` links an embedded-fallback terminfo ncurses so it probes the terminal width without a host `/usr/share/terminfo`, keeping the binary free of `/nix/store` references.
 - **Man pages:** the section-1 pages are embedded; read with `unpin man psmisc pstree`.

@@ -34,6 +34,15 @@
       smokePattern = "PSmisc";
       # Fallback terminfo is baked centrally for every engine-Linux ncurses
       # (native-overlay/ncurses.nix), so pkgsStatic.ncurses already carries it.
-      build = pkgs: pkgs.pkgsStatic.psmisc;
+      # peekfd is arch-gated off on x86_64 (see above), but nixpkgs still installs
+      # its man page — drop peekfd.1 so the engine man-set embeds exactly the
+      # shipped applets' pages (a peekfd.1 with no peekfd applet is a phantom).
+      build = pkgs: pkgs.pkgsStatic.psmisc.overrideAttrs (old: {
+        postInstall = (if (old.postInstall or null) == null then "" else old.postInstall) + ''
+          for _mo in $outputs; do
+            rm -f "''${!_mo}"/share/man/man1/peekfd.1*
+          done
+        '';
+      });
     };
 }
