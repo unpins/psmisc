@@ -1,6 +1,6 @@
 # psmisc
 
-[psmisc](https://gitlab.com/psmisc/psmisc) — small utilities that use the `/proc` filesystem: `killall`, `pstree`, `fuser`, `prtstat` and `pslog`. A single self-contained binary.
+[psmisc](https://gitlab.com/psmisc/psmisc) — small programs that use the `/proc` filesystem: `killall`, `pstree`, `fuser`, `prtstat` and `pslog`. A single self-contained binary, built natively for Linux.
 
 [![CI](https://github.com/unpins/psmisc/actions/workflows/psmisc.yml/badge.svg)](https://github.com/unpins/psmisc/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
