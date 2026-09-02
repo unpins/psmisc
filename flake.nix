@@ -26,7 +26,7 @@
       # Build via the unpin-llvm engine + emit a bitcode multicall module.
       engine = "unpin-llvm";
       multicall = {
-        programs = [{ name = "fuser"; } { name = "killall"; } { name = "prtstat"; } { name = "pslog"; } { name = "pstree"; aliases = [ "pstree.x11" ]; }];
+        programs = [{ name = "fuser"; } { name = "killall"; } { name = "prtstat"; } { name = "pslog"; } { name = "pstree"; aliases = [ { name = "pstree.x11"; noMan = true; } ]; }];
       };
       binName = "psmisc";
       linuxOnly = true; # reads /proc — nixpkgs meta.platforms is linux-only
