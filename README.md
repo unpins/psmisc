@@ -14,9 +14,9 @@ Linux-only: psmisc reads the Linux `/proc` filesystem, which macOS and Windows d
 Run a program with [unpin](https://github.com/unpins/unpin):
 
 ```bash
-unpin psmisc pstree              # tree of running processes
-unpin psmisc killall firefox     # kill processes by name
-unpin psmisc fuser -v /home      # who is using a file/mount
+unpin psmisc --unpin-program=pstree           # tree of running processes
+unpin psmisc --unpin-program=killall firefox  # kill processes by name
+unpin psmisc --unpin-program=fuser -v /home   # who is using a file/mount
 ```
 
 To install the programs onto your PATH:

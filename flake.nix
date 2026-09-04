@@ -37,7 +37,17 @@
       # peekfd is arch-gated off on x86_64 (see above), but nixpkgs still installs
       # its man page — drop peekfd.1 so the engine man-set embeds exactly the
       # shipped applets' pages (a peekfd.1 with no peekfd applet is a phantom).
+      # gettext compiles the build's own prefix in as LOCALEDIR, so the
+      # translations these tools look up live at a `/nix/store/...` path that
+      # exists on no user's machine. Point the lookup at the conventional
+      # location instead (upstream's own default under prefix=/usr), and keep
+      # installing the `.mo` files under $out. Nix never saw the string: the
+      # engine fold's inputs are the module archives, not psmisc's `out`, so
+      # `nix-store -q --references` reports nothing and only a grep of the
+      # binary finds it.
       build = pkgs: pkgs.pkgsStatic.psmisc.overrideAttrs (old: {
+        configureFlags = (old.configureFlags or [ ]) ++ [ "--localedir=/usr/share/locale" ];
+        installFlags = (old.installFlags or [ ]) ++ [ "localedir=${placeholder "out"}/share/locale" ];
         postInstall = (if (old.postInstall or null) == null then "" else old.postInstall) + ''
           for _mo in $outputs; do
             rm -f "''${!_mo}"/share/man/man1/peekfd.1*
