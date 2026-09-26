@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [23.7-1] - 2026-09-26
+
 Initial release — psmisc 23.7 as a single self-contained binary, built natively
 for Linux.
 
