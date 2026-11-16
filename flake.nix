@@ -47,6 +47,9 @@
         patches = (old.patches or [ ]) ++ [ ./patches/peekfd-musl-x86.patch ./patches/killall-signal-words.patch ];
         configureFlags = (old.configureFlags or [ ]) ++ [ "--localedir=/usr/share/locale" ];
         installFlags = (old.installFlags or [ ]) ++ [ "localedir=${placeholder "out"}/share/locale" ];
+        # Upstream's dejagnu suite (killall, pslog, fuser).
+        doCheck = pkgs.stdenv.buildPlatform.canExecute pkgs.pkgsStatic.stdenv.hostPlatform;
+        nativeCheckInputs = [ pkgs.buildPackages.dejagnu ];
         postInstall = (if (old.postInstall or null) == null then "" else old.postInstall)
           + pkgs.lib.optionalString (!withPeekfd pkgs.pkgsStatic.stdenv.hostPlatform) ''
           for _mo in $outputs; do
