@@ -44,7 +44,7 @@
       # `nix-store -q --references` reports nothing and only a grep of the
       # binary finds it.
       build = pkgs: pkgs.pkgsStatic.psmisc.overrideAttrs (old: {
-        patches = (old.patches or [ ]) ++ [ ./patches/peekfd-musl-x86.patch ];
+        patches = (old.patches or [ ]) ++ [ ./patches/peekfd-musl-x86.patch ./patches/killall-signal-words.patch ];
         configureFlags = (old.configureFlags or [ ]) ++ [ "--localedir=/usr/share/locale" ];
         installFlags = (old.installFlags or [ ]) ++ [ "localedir=${placeholder "out"}/share/locale" ];
         postInstall = (if (old.postInstall or null) == null then "" else old.postInstall)

@@ -1,0 +1,47 @@
+killall: read signal words (-HUP, -SIGHUP, -9) before getopt.
+
+The '?' case finds the signal word at argv[optind-1], which assumes glibc's
+getopt_long_only: it skips an unrecognised word whole. musl's (rightly, per
+its maintainer: https://openwall.com/lists/musl/2020/05/14/3) walks the word
+letter by letter and leaves optind on it, so `killall -HUP name` printed the
+usage and every "killall using signal" test in the upstream suite failed.
+Take the signal words out of argv first, with the same rules the option
+cases use (-I, -V and -Z<regex> stay options).
+
+--- a/src/killall.c
++++ b/src/killall.c
+@@ -938,6 +938,34 @@
+         name = *argv;
+     sig_num = SIGTERM;
+ 
++    /* Take signal words (-HUP, -SIGHUP, -9) out of argv before getopt.
++     * The '?' case below reads them back through optind, which only works
++     * with glibc: getopt_long_only there skips an unknown word whole, while
++     * other getopts (musl) walk it letter by letter and leave optind behind.
++     * Same rules as the cases below: -I, -V and -Z<regex> stay options. */
++    {
++        int in, out;
++        for (in = out = 1; in < argc; in++) {
++            char *a = argv[in];
++            if (strcmp(a, "--") == 0) {
++                while (in < argc)
++                    argv[out++] = argv[in++];
++                break;
++            }
++            if (a[0] == '-' && (isupper((unsigned char)a[1]) || isdigit((unsigned char)a[1]))
++                    && strcmp(a, "-I") != 0 && strcmp(a, "-V") != 0 && a[1] != 'Z') {
++                sig_num = get_signal(a + 1, "killall");
++                continue;
++            }
++            argv[out++] = a;
++            /* keep an option's separate argument with it */
++            if (in + 1 < argc && (strcmp(a, "-Z") == 0 || (a[0] == '-' && a[1] != '-'
++                    && a[1] != '\0' && a[2] == '\0' && strchr("yosun", a[1]))))
++                argv[out++] = argv[++in];
++        }
++        argc = out;
++        argv[argc] = NULL;
++    }
+ 
+     opterr = 0;
+     while ( (optc = getopt_long_only(argc,argv,"egy:o:ilqrs:u:vwZ:VIn:",options,NULL)) != -1) {
