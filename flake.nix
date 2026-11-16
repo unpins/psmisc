@@ -17,7 +17,11 @@
   # ncurses (same trick as htop/dash) to keep the binary 0-ref — DB-on so it
   # shares one ncurses .a with the rest of the mega (dedup).
   outputs = { self, unpins-lib }:
-    let lib = unpins-lib.lib;
+    let
+      lib = unpins-lib.lib;
+      # Hosts where configure builds peekfd (its ptrace register map): no
+      # riscv, s390x, loongarch, and mips only when the BUILD cpu is mipsel.
+      withPeekfd = p: p.isx86 || p.isAarch64 || p.isAarch32 || p.isPower || p.isM68k;
     in
     lib.mkStandaloneFlake {
       inherit self;
@@ -26,7 +30,7 @@
       # Build via the unpin-llvm engine + emit a bitcode multicall module.
       engine = "unpin-llvm";
       multicall = {
-        programs = [{ name = "fuser"; } { name = "killall"; } { name = "prtstat"; } { name = "pslog"; } { name = "pstree"; aliases = [ { name = "pstree.x11"; noMan = true; } ]; }];
+        programs = [{ name = "fuser"; } { name = "killall"; } { name = "peekfd"; supportedTarget = withPeekfd; } { name = "prtstat"; } { name = "pslog"; } { name = "pstree"; aliases = [ { name = "pstree.x11"; noMan = true; } ]; }];
       };
       binName = "psmisc";
       linuxOnly = true; # reads /proc — nixpkgs meta.platforms is linux-only
@@ -34,9 +38,8 @@
       smokePattern = "PSmisc";
       # Fallback terminfo is baked centrally for every engine-Linux ncurses
       # (native-overlay/ncurses.nix), so pkgsStatic.ncurses already carries it.
-      # peekfd is arch-gated off on x86_64 (see above), but nixpkgs still installs
-      # its man page — drop peekfd.1 so the engine man-set embeds exactly the
-      # shipped applets' pages (a peekfd.1 with no peekfd applet is a phantom).
+      # peekfd.1 is installed on every host, peekfd only where configure builds
+      # it: drop the page elsewhere so no man page names a missing program.
       # gettext compiles the build's own prefix in as LOCALEDIR, so the
       # translations these tools look up live at a `/nix/store/...` path that
       # exists on no user's machine. Point the lookup at the conventional
@@ -46,9 +49,11 @@
       # `nix-store -q --references` reports nothing and only a grep of the
       # binary finds it.
       build = pkgs: pkgs.pkgsStatic.psmisc.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./patches/peekfd-musl-x86.patch ];
         configureFlags = (old.configureFlags or [ ]) ++ [ "--localedir=/usr/share/locale" ];
         installFlags = (old.installFlags or [ ]) ++ [ "localedir=${placeholder "out"}/share/locale" ];
-        postInstall = (if (old.postInstall or null) == null then "" else old.postInstall) + ''
+        postInstall = (if (old.postInstall or null) == null then "" else old.postInstall)
+          + pkgs.lib.optionalString (!withPeekfd pkgs.pkgsStatic.stdenv.hostPlatform) ''
           for _mo in $outputs; do
             rm -f "''${!_mo}"/share/man/man1/peekfd.1*
           done
