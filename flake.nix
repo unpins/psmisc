@@ -8,19 +8,14 @@
 
   inputs.unpins-lib.url = "github:unpins/nix-lib";
 
-  # psmisc builds five proc-table tools (killall, pstree, fuser, prtstat, pslog;
-  # peekfd is arch-gated off on x86_64) plus the pstree.x11 compat symlink. They
-  # fold via the unpin-llvm engine's bitcode multicall module (declared in
-  # `multicall = { programs }` below), so the build is the plain pkgsStatic.psmisc.
-  # pstree links TERMCAP_LIB for terminal-width probing; static ncurses would
-  # embed an absolute terminfo store path, so we swap in the embedded-fallback
-  # ncurses (same trick as htop/dash) to keep the binary 0-ref — DB-on so it
-  # shares one ncurses .a with the rest of the mega (dedup).
+  # psmisc's programs (fuser, killall, peekfd, prtstat, pslog, pstree and the
+  # pstree.x11 alias) fold into one binary through the engine's multicall
+  # module; the build is pkgsStatic.psmisc plus the overrides below.
   outputs = { self, unpins-lib }:
     let
       lib = unpins-lib.lib;
-      # Hosts where configure builds peekfd (its ptrace register map): no
-      # riscv, s390x, loongarch, and mips only when the BUILD cpu is mipsel.
+      # Hosts where configure builds peekfd (it needs a ptrace register map):
+      # none for riscv, s390x or loongarch, and mips only on a mipsel BUILD cpu.
       withPeekfd = p: p.isx86 || p.isAarch64 || p.isAarch32 || p.isPower || p.isM68k;
     in
     lib.mkStandaloneFlake {
@@ -36,8 +31,8 @@
       linuxOnly = true; # reads /proc — nixpkgs meta.platforms is linux-only
       smoke = [ "--unpin-program=pstree" "--version" ];
       smokePattern = "PSmisc";
-      # Fallback terminfo is baked centrally for every engine-Linux ncurses
-      # (native-overlay/ncurses.nix), so pkgsStatic.ncurses already carries it.
+      # pstree probes the terminal width through ncurses, whose fallback
+      # terminfo nix-lib bakes in (native-overlay/ncurses.nix).
       # peekfd.1 is installed on every host, peekfd only where configure builds
       # it: drop the page elsewhere so no man page names a missing program.
       # gettext compiles the build's own prefix in as LOCALEDIR, so the
