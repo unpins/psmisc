@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Added
+
+- `peekfd`, which shows what a running process reads and writes, on every
+  Linux target except riscv64. Before, it was missing on x86_64 and i686 too.
+
+### Fixed
+
+- `killall -HUP name`, `killall -SIGUSR1 name` and `killall -10 name` printed
+  the usage instead of sending the signal (`-s HUP` worked).
+
 ## [23.7-1] - 2026-09-26
 
 Initial release — psmisc 23.7 as a single self-contained binary, built natively

@@ -1,6 +1,6 @@
 # psmisc
 
-[psmisc](https://gitlab.com/psmisc/psmisc) — small programs that use the `/proc` filesystem: `killall`, `pstree`, `fuser`, `prtstat` and `pslog`. A single self-contained binary, built natively for Linux.
+[psmisc](https://gitlab.com/psmisc/psmisc) — small programs that use the `/proc` filesystem: `killall`, `pstree`, `fuser`, `prtstat`, `pslog` and `peekfd`. A single self-contained binary, built natively for Linux.
 
 [![CI](https://github.com/unpins/psmisc/actions/workflows/psmisc.yml/badge.svg)](https://github.com/unpins/psmisc/actions)
 ![Linux](https://img.shields.io/badge/Linux-✓-success?logo=linux&logoColor=white)
@@ -17,6 +17,7 @@ Run a program with [unpin](https://github.com/unpins/unpin):
 unpin psmisc --unpin-program=pstree           # tree of running processes
 unpin psmisc --unpin-program=killall firefox  # kill processes by name
 unpin psmisc --unpin-program=fuser -v /home   # who is using a file/mount
+unpin psmisc --unpin-program=peekfd 1234 1    # watch what process 1234 writes to fd 1
 ```
 
 To install the programs onto your PATH:
@@ -25,7 +26,7 @@ To install the programs onto your PATH:
 unpin install psmisc
 ```
 
-`unpin install psmisc` creates `killall`, `pstree`, `fuser`, `prtstat` and `pslog` (plus the `pstree.x11` alias). `unpin info psmisc` lists every command.
+`unpin install psmisc` creates `killall`, `pstree`, `fuser`, `prtstat`, `pslog` and `peekfd` (plus the `pstree.x11` alias). `unpin info psmisc` lists every command.
 
 ## Build locally
 
@@ -51,3 +52,5 @@ The [Releases](https://github.com/unpins/psmisc/releases) page has standalone bi
 - **Platform:** Linux only (`/proc`).
 - **Terminal width:** `pstree` links an embedded-fallback terminfo ncurses so it probes the terminal width without a host `/usr/share/terminfo`, keeping the binary free of `/nix/store` references.
 - **Man pages:** the section-1 pages are embedded; read with `unpin man psmisc pstree`.
+- **Not included:** `peekfd` on riscv64 (upstream has no register map for that CPU); security contexts, `pstree -Z` and `killall -Z` (SELinux, AppArmor; off in nixpkgs, and upstream loads those libraries at run time).
+- **Tests:** the upstream suite (killall, pslog, fuser) runs on native builds (0 failures under static-musl) and is skipped on cross targets the build host can't execute.

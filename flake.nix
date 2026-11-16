@@ -1,5 +1,5 @@
 {
-  description = "psmisc (killall + pstree + fuser + prtstat + pslog) as a single self-contained binary";
+  description = "psmisc (killall + pstree + fuser + prtstat + pslog + peekfd) as a single self-contained binary";
 
   nixConfig = {
     extra-substituters = [ "https://unpins.cachix.org" ];
